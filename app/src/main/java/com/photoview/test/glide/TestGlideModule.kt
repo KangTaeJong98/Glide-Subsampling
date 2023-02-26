@@ -7,12 +7,14 @@ import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.module.AppGlideModule
 import com.photoview.test.ImageLoadModel
+import java.io.File
 import java.nio.ByteBuffer
 
 @GlideModule
 class TestGlideModule : AppGlideModule() {
     override fun registerComponents(context: Context, glide: Glide, registry: Registry) {
         super.registerComponents(context, glide, registry)
+        registry.append(String::class.java, File::class.java, StringFileFactory())
         registry.append(ImageLoadModel::class.java, Bitmap::class.java, ImageLoadModelFactory())
     }
 }

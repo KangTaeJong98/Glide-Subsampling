@@ -2,7 +2,6 @@ package com.photoview.test.glide
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.data.DataFetcher
@@ -13,17 +12,15 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.lang.Exception
-import java.nio.ByteBuffer
 
 class ImageLoadModelFetcher(
     private val model: ImageLoadModel,
-    private val loadData: ModelLoader.LoadData<InputStream>
+    private val loadData: ModelLoader.LoadData<File>
 ) : DataFetcher<Bitmap> {
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in Bitmap>) {
-        loadData.fetcher.loadData(priority, object : DataFetcher.DataCallback<InputStream> {
-            override fun onDataReady(data: InputStream?) {
-                callback.onDataReady(data?.let(InputStream::buffered)?.let(::getBitmap))
-                data?.close()
+        loadData.fetcher.loadData(priority, object : DataFetcher.DataCallback<File> {
+            override fun onDataReady(data: File?) {
+                callback.onDataReady(data?.let(::getBitmap))
             }
 
             override fun onLoadFailed(e: Exception) {
@@ -40,24 +37,24 @@ class ImageLoadModelFetcher(
 
     override fun getDataSource() = DataSource.LOCAL
 
-    private fun getBitmap(inputStream: BufferedInputStream): Bitmap? {
-        inputStream.mark(Int.MAX_VALUE)
-        val sizeOptions = getSizeOptions(inputStream)
-        inputStream.reset()
-        val decodedBitmap = getDecodedBitmap(inputStream)
+    private fun getBitmap(file: File): Bitmap? {
+        val sizeOptions = getSizeOptions(file)
+        val decodedBitmap = getDecodedBitmap(file)
 
         return decodedBitmap?.let {
             Bitmap.createScaledBitmap(it, sizeOptions.outWidth, sizeOptions.outHeight, false)
         }
     }
 
-    private fun getSizeOptions(inputStream: BufferedInputStream) = BitmapFactory.Options().apply {
+    private fun getSizeOptions(file: File) = BitmapFactory.Options().apply {
         inJustDecodeBounds = true
-    }.also {
-        BitmapFactory.decodeStream(inputStream, null, it)
+    }.also { options ->
+        FileInputStream(file).use { BitmapFactory.decodeStream(it, null, options) }
     }
 
-    private fun getDecodedBitmap(inputStream: InputStream) = BitmapFactory.decodeStream(inputStream, null, getBitmapOptions())
+    private fun getDecodedBitmap(file: File) = FileInputStream(file).use {
+        BitmapFactory.decodeStream(it, null, getBitmapOptions())
+    }
 
     private fun getBitmapOptions() = BitmapFactory.Options().apply {
         inSampleSize = if (model.scale >= 1.5F) {

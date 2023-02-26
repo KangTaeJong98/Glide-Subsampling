@@ -11,7 +11,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 
 class ImageLoadModelLoader(
-    private val modelLoader: ModelLoader<String, InputStream>
+    private val modelLoader: ModelLoader<String, File>
 ) : ModelLoader<ImageLoadModel, Bitmap> {
     override fun buildLoadData(model: ImageLoadModel, width: Int, height: Int, options: Options): ModelLoader.LoadData<Bitmap>? {
         return modelLoader.buildLoadData(model.uri, width, height, options)?.let {

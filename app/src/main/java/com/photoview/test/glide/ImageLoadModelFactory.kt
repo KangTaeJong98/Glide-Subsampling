@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 class ImageLoadModelFactory : ModelLoaderFactory<ImageLoadModel, Bitmap> {
     override fun build(multiFactory: MultiModelLoaderFactory): ModelLoader<ImageLoadModel, Bitmap> {
         return ImageLoadModelLoader(
-            multiFactory.build(String::class.java, InputStream::class.java)
+            multiFactory.build(String::class.java, File::class.java)
         )
     }
 
