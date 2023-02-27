@@ -74,6 +74,7 @@ class ModelToBitmapFetcher(
         val heightScale = (originSizeOptions.outHeight / height).coerceAtLeast(1)
 
         min(widthScale, heightScale)
+        4
     }
 
 

@@ -1,9 +1,6 @@
 package com.photoview.test
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.LayoutInflater
@@ -23,8 +20,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
-import java.util.UUID
-import kotlin.math.abs
+import kotlin.math.min
 
 class ImageHolder(
     private val binding: HolderImageBinding
@@ -37,7 +33,6 @@ class ImageHolder(
         )
     )
 
-    private val context get() = itemView.context
     private val lifecycleOwner get() = itemView.findViewTreeLifecycleOwner()
 
     private val translateX = MutableStateFlow(0F)
@@ -46,6 +41,10 @@ class ImageHolder(
 
     private var collectMatrixJob: Job? = null
     private var uiState: String = ""
+
+    init {
+        binding.imageView.maximumScale = 10F
+    }
 
     fun onBind(uiState: String) {
         this.uiState = uiState
@@ -80,8 +79,14 @@ class ImageHolder(
                     override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
                         binding.imageView.setOnMatrixChangeListener(null)
                         binding.imageView.setImageDrawable(resource)
+
+                        val minScale = min(binding.imageView.measuredWidth.toFloat() / resource.intrinsicWidth, binding.imageView.measuredHeight.toFloat() / resource.intrinsicHeight)
+                        val widthDiff = (binding.imageView.measuredWidth - resource.intrinsicWidth * minScale)
+                        val heightDiff = (binding.imageView.measuredHeight - resource.intrinsicHeight * minScale)
+
                         binding.imageView.setDisplayMatrix(
                             Matrix().apply {
+                                postTranslate(-widthDiff / 2F, -heightDiff / 2F)
                                 postScale(scale.value, scale.value)
                                 postTranslate(translateX.value, translateY.value)
                             }
@@ -99,6 +104,5 @@ class ImageHolder(
                     }
                 }
             )
-
     }
 }
