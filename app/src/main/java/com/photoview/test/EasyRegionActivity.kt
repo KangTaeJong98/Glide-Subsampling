@@ -2,13 +2,16 @@ package com.photoview.test
 
 import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
+import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.photoview.test.databinding.EasyRegionActivityBinding
 import kotlin.math.abs
 import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 class EasyRegionActivity : AppCompatActivity() {
     private val binding by lazy { EasyRegionActivityBinding.inflate(layoutInflater) }
@@ -26,26 +29,23 @@ class EasyRegionActivity : AppCompatActivity() {
     }
 
     private fun loadRegionBitmap(rectF: RectF) {
-        val measuredWidth = binding.imageView.measuredWidth
-        val measuredHeight = binding.imageView.measuredHeight
-        val leftPercent = abs(rectF.left / measuredWidth / binding.imageView.scale)
-        val topPercent = abs(rectF.top / measuredHeight / binding.imageView.scale)
-        val rightPercent = abs(leftPercent + (1 / binding.imageView.scale))
-        val bottomPercent = abs(topPercent + (1 / binding.imageView.scale))
+        if (rectF.width() == 0F || rectF.height() == 0F) {
+            return
+        }
+
+        val array = FloatArray(9)
+        binding.imageView.imageMatrix.getValues(array)
+        val transX = array[Matrix.MTRANS_X]
+        val transY = array[Matrix.MTRANS_Y]
+        val scaleX = array[Matrix.MSCALE_X]
+        val scaleY = array[Matrix.MSCALE_Y]
 
         val bitmap = BitmapRegionDecoder.newInstance(assets.open("img0.png"))?.let {
-            val rect = Rect(
-                ceil(it.width * leftPercent).toInt(),
-                ceil(it.height * topPercent).toInt(),
-                ceil(it.width * rightPercent).toInt(),
-                ceil(it.height * bottomPercent).toInt()
-            )
-
-            if (rect.width() == 0 || rect.height() == 0) {
-                null
-            } else {
-                it.decodeRegion(rect, BitmapFactory.Options())
-            }
+            val left = abs(transX / scaleX)
+            val top = abs(transY / scaleY)
+            val right = abs(left + binding.imageView.measuredWidth / scaleX)
+            val bottom = abs(top + binding.imageView.measuredHeight / scaleY)
+            it.decodeRegion(Rect(ceil(left).toInt(), ceil(top).toInt(), ceil(right).toInt(), ceil(bottom).toInt()), BitmapFactory.Options())
         }
 
         binding.regionView.setImageBitmap(bitmap)
