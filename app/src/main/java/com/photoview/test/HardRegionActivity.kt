@@ -6,12 +6,19 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.load.engine.executor.GlideExecutor.UncaughtThrowableStrategy.LOG
 import com.photoview.test.databinding.HardRegionActivityBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -30,10 +37,13 @@ class HardRegionActivity : AppCompatActivity() {
     }
 
     private fun initImageView() {
-        binding.imageView.setOnMatrixChangeListener(::loadRegionBitmap)
-        binding.imageView.setImageBitmap(getBitmap())
+        binding.imageView.maximumScale = 10F
+        binding.imageView.addOnMatrixChangeListener(::loadRegionBitmap)
+        binding.imageView.setImageDrawable(getBitmap()?.let { BitmapDrawable(resources, it) })
     }
 
+
+    private var job: Job? = null
     private fun loadRegionBitmap(rectF: RectF) {
         if (rectF.width() == 0F || rectF.height() == 0F) {
             return
@@ -55,6 +65,13 @@ class HardRegionActivity : AppCompatActivity() {
         }
 
         binding.regionView.setImageBitmap(bitmap)
+        job?.cancel()
+        job = lifecycleScope.launch {
+            delay(200L)
+            withContext(Dispatchers.Main) {
+                binding.imageView.setRegionImage(bitmap?.let { BitmapDrawable(resources, it) })
+            }
+        }
     }
 
     private fun getLeftPercent(array: FloatArray): Float {
