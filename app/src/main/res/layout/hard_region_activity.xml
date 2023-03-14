@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".HardRegionActivity">
 
-    <com.github.chrisbanes.photoview.PhotoView
+    <com.photoview.test.MyImageView
         android:id="@+id/image_view"
         android:layout_width="0dp"
         android:layout_height="0dp"

@@ -29,6 +29,7 @@ class EasyRegionActivity : AppCompatActivity() {
     }
 
     private fun loadRegionBitmap(rectF: RectF) {
+        Log.d("PASSZ", "Rect : $rectF")
         if (rectF.width() == 0F || rectF.height() == 0F) {
             return
         }

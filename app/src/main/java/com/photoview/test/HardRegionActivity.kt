@@ -101,5 +101,5 @@ class HardRegionActivity : AppCompatActivity() {
         }
     }
 
-    private fun getBitmap() = BitmapFactory.decodeStream(assets.open("img0.png"))
+    private fun getBitmap() = BitmapFactory.decodeStream(assets.open("img0.png"), null, BitmapFactory.Options().apply { inSampleSize = 4 })
 }
