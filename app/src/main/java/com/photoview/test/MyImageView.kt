@@ -74,7 +74,6 @@ class MyImageView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         onDrawRegionImage(canvas)
-//        onDrawDebug(canvas)
     }
 
     override fun setImageDrawable(drawable: Drawable?) {
@@ -90,16 +89,17 @@ class MyImageView @JvmOverloads constructor(
         onMatrixChangedListenerList.add(listener)
     }
 
-    fun removeOnMatrixChangeListener(listener: OnMatrixChangedListener) {
-        onMatrixChangedListenerList.remove(listener)
-    }
-
     private fun onDrawRegionImage(canvas: Canvas) {
         val drawable = regionImage ?: return
-        val x = if (displayRect.left > 0) {
-            0F
+        val x = if (displayRect.left <= 0F && regionImageRectF.left > 0F) {
+            abs(regionImageTranslateX) * scale / regionImageScale
         } else {
-            (abs(regionImageRectF.left) - displayRect.left).coerceAtLeast(0F)
+            0F
+        }
+        val y = if (displayRect.top <= 0F && regionImageRectF.top > 0F) {
+            abs(regionImageTranslateY) * scale / regionImageScale
+        } else {
+            0F
         }
         val widthPadding = if (displayRect.left > 0F) {
             displayRect.left
@@ -121,49 +121,16 @@ class MyImageView @JvmOverloads constructor(
         } else {
             displayRect.top - regionImageRectF.top / regionImageScale * scale
         }
-        val scaleDiff = (scale - regionImageScale)
 
         drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
-
-
         regionImageMatrix.reset()
         regionImageMatrix.postScale(regionImageScaleX * scale / regionImageScale, regionImageScaleY * scale / regionImageScale)
         regionImageMatrix.postTranslate(widthPadding, heightPadding)
         regionImageMatrix.postTranslate(translateX, translateY)
-
-
-        Log.d("PASSZ", "View : $scale, $measuredWidth, $measuredHeight")
-        Log.d("PASSZ", "Rect : $displayRect")
-        Log.d("PASSZ", "Region : $regionImageScale, ${drawable.intrinsicWidth}, ${drawable.intrinsicHeight}")
-        Log.d("PASSZ", "Region Rect: $regionImageRectF")
+        regionImageMatrix.postTranslate(x, y)
 
         canvas.withSave {
             concat(regionImageMatrix)
-            drawable.draw(this)
-        }
-    }
-
-    private fun onDrawDebug(canvas: Canvas) {
-        val drawable = ColorDrawable(Color.RED)
-        val matrix = Matrix()
-        val w = if (displayRect.left > 0F) {
-            displayRect.left
-        } else {
-            (displayRect.left - regionImageRectF.left)
-        }
-        val h = if (displayRect.top > 0F) {
-            displayRect.top
-        } else {
-            (displayRect.top - regionImageRectF.top)
-        }
-
-        drawable.setBounds(0, 0, 300, 300)
-//        matrix.postScale(measuredWidth / 300F, w, measuredHeight / 300F, h)
-//        matrix.postTranslate(w, h)
-        matrix.postScale(scale, scale)
-
-        canvas.withSave {
-            concat(matrix)
             drawable.draw(this)
         }
     }
