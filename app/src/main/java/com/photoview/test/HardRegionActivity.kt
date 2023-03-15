@@ -53,7 +53,7 @@ class HardRegionActivity : AppCompatActivity() {
         binding.imageView.imageMatrix.getValues(array)
 
 
-        val bitmap = BitmapRegionDecoder.newInstance(assets.open("img0.png"))?.let {
+        val bitmap = BitmapRegionDecoder.newInstance(assets.open(getFileName()))?.let {
             it.decodeRegion(
                 Rect(
                     (it.width * getLeftPercent(array)).roundToInt(),
@@ -118,5 +118,12 @@ class HardRegionActivity : AppCompatActivity() {
         }
     }
 
-    private fun getBitmap() = BitmapFactory.decodeStream(assets.open("img0.png"), null, BitmapFactory.Options().apply { inSampleSize = 4 })
+    private fun getFileName() = "toon.jpeg"
+    private fun getBitmap() = BitmapFactory.decodeStream(
+        assets.open(getFileName()),
+        null,
+        BitmapFactory.Options().apply {
+            inSampleSize = 4
+        }
+    )
 }
